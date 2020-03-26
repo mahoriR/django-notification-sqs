@@ -59,11 +59,9 @@ class Notification(models.Model):
         (STATE_FAILED, 'Failed'),
         )
 
-    nid = models.UUIDField(
-        'Notification Id', primary_key=True)
+    nid = models.UUIDField('Notification Id', primary_key=True)
     eid =  models.ForeignKey(
-        'Entity Id',
-        AddrEntity, on_delete=models.SET_NULL, null=True
+        AddrEntity, on_delete=models.SET_NULL, blank=True, null=True,
     )
     n_type = models.PositiveIntegerField(choices=NOTIFICATION_TYPE_CHOICES)
     n_state = models.PositiveIntegerField(choices=NOTIFICATION_STATE_CHOICES)

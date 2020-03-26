@@ -1,6 +1,18 @@
-from mail_khaifa.cp_utils.errors import CpError
+#from mail_khaifa.cp_utils.errors import CpError
 
-from mail_khaifa.ext_svc_mgr.ext_svc_mgr import ExternalServiceManager
+#from mail_khaifa.cp_utils.errors
+from django.core.exceptions import MultipleObjectsReturned
+
+from rest_framework import generics, status
+from rest_framework import status
+from rest_framework.permissions import AllowAny
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.exceptions import ParseError
+
+from ext_svc_mgr.ext_svc_mgr import ExternalServiceManager
 
 from ..serializer import (
     QueuableSmsNotificationData, QueuableEmailNotificationData, QueuableNotificationData,

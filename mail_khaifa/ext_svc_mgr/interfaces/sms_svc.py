@@ -1,5 +1,6 @@
 import abc
-from notification.api.serializer import QueuablePushNotificationData
+from notification.serializer import QueuableSmsNotificationData
+from .sent_result import SentResult
 
 class SmsServiceWrapperABC(abc.ABC):
     '''

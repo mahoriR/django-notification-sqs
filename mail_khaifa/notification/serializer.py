@@ -1,9 +1,9 @@
 import abc, uuid, collections
 import typing
 
-from mail_khaifa.cp_utils.errors import ErrorInfo, CpError
+from cp_utils.errors import ErrorInfo, CpError
 
-from mail_khaifa.cp_utils.interfaces.request_serializer import RequestABC
+from cp_utils.interfaces.request_serializer import RequestABC
 
 from .models import AddrEntity, Notification
 
@@ -88,7 +88,7 @@ class QueuableSmsNotificationData(QueuableNotificationData, RequestABC):
         pass
 
     @classmethod
-    def from_request(cls, request_data)->(QueuableSmsNotificationData, ErrorInfo):
+    def from_request(cls, request_data)->(QueuableNotificationData, ErrorInfo):
         if request_data.get('addressing_type', None) == cls.AddressingType.ENTITY:
             if request_data.get('nid', None) is None:
                 request_data['nid']=uuid.uuid4()
@@ -190,7 +190,7 @@ class AddressableEntity(AddressableEntityABC, RequestABC):
     def __init__(self, eid:uuid, e_type:int, phones:list, emails:list, fcm_tokens:list):
         raise NotImplemented()
     @classmethod
-    def from_request(cls, request_data)->(AddressableEntity, ErrorInfo):
+    def from_request(cls, request_data)->(AddressableEntityABC, ErrorInfo):
         if request_data and                                     \
         ('eid' in request_data) and                             \
         ('e_type' in request_data) and                          \

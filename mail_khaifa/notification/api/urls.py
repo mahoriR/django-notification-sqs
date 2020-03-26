@@ -12,4 +12,5 @@ urlpatterns = [
     path(r'cb/state/', views.handle_enqued_notification_state_cb)   #called by CP Queue with notification State
 ]
 
-urlpatterns = format_suffix_patterns(urlpatterns)
+urlpatterns = format_suffix_patterns(urlpatterns, allowed=['json', 'html'])
+

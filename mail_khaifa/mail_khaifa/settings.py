@@ -30,8 +30,12 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
-
 INSTALLED_APPS = [
+    'notification.apps.NotificationConfig',
+    'ext_svc_mgr.apps.ExtSvcMgrConfig',
+    ]
+
+INSTALLED_APPS += [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

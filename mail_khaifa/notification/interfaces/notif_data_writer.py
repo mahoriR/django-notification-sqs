@@ -1,6 +1,6 @@
 import abc
-from .api.serializer import QueuableNotificationDataABC
-from mail_khaifa.cp_utils.errors import CpError, ErrorInfo
+from .queuable_notification_data import QueuableNotificationDataABC
+from cp_utils.errors import CpError, ErrorInfo
 
 class NotificationQueueWriterABC(abc.ABC):
     '''

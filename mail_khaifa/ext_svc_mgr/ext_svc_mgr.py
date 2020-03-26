@@ -1,7 +1,8 @@
 import random
-from notification.api.serializer import NotificationDataABC
 from notification.models import Notification
-from .interfaces import SmsServiceWrapperABC
+from notification.interfaces.notification_data import NotificationDataABC
+from .interfaces.sms_svc import SmsServiceWrapperABC
+from .interfaces.sent_result import SentResult
 
 class MSG91Wrapper(SmsServiceWrapperABC):
     '''

@@ -1,9 +1,10 @@
 import abc
-from .api.serializer import QueuableNotificationDataABC, QueuableNotificationStateABC
-from mail_khaifa.notification.interfaces.notif_data_writer import NotificationQueueWriterABC
-from mail_khaifa.notification.interfaces.notif_state_writer import NotificationStateQueueWriterABC
+from .serializer import QueuableNotificationDataABC, QueuableNotificationStateABC
 
-from mail_khaifa.cp_utils.errors import ErrorInfo, CpError
+from notification.interfaces.notif_data_writer import NotificationQueueWriterABC
+from notification.interfaces.notif_state_writer import NotificationStateQueueWriterABC
+
+from cp_utils.errors import ErrorInfo, CpError
 
 class QueueWriter(NotificationQueueWriterABC, NotificationStateQueueWriterABC):
     '''

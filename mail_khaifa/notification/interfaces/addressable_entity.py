@@ -1,4 +1,6 @@
 import abc, uuid
+from typing import List
+
 
 class AddressableEntityABC(abc.ABC):
     @abc.abstractmethod
