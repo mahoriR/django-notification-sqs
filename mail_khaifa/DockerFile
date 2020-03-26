@@ -1,0 +1,12 @@
+FROM python:3.6.8-slim
+
+ENV PYTHONUNBUFFERED 1
+
+WORKDIR /mail_khaifa/web
+
+RUN python -m pip install --upgrade pip
+
+COPY requirements.txt /mail_khaifa/web
+RUN pip install -r requirements.txt
+
+COPY . /mail_khaifa/web
