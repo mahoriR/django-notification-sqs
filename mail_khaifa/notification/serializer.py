@@ -1,5 +1,5 @@
 import abc, uuid, collections
-import typing
+from typing import List
 
 from cp_utils.errors import ErrorInfo, CpError
 
@@ -188,17 +188,51 @@ class QueuableNotificationState(QueuableNotificationStateABC):
 
 class AddressableEntity(AddressableEntityABC, RequestABC):
     def __init__(self, eid:uuid, e_type:int, phones:list, emails:list, fcm_tokens:list):
-        raise NotImplemented()
+        self._eid=eid
+        self._e_type=e_type
+        self._phones=phones
+        self._emails=emails
+        self._fcm_tokens=fcm_tokens
+
     @classmethod
     def from_request(cls, request_data)->(AddressableEntityABC, ErrorInfo):
-        if request_data and                                     \
-        ('eid' in request_data) and                             \
-        ('e_type' in request_data) and                          \
-        ('e_type' in zip(AddrEntity.ENTITY_TYPE_CHOICES)[0]):
-            return cls(
-                request_data.get('eid'), request_data.get('e_type'),
-                request_data.get('phones', list()),
-                request_data.get('emails', list()),
-                request_data.get('fcm_tokens', list())
-                )
-        return CpError.INVALID_PARAMETERS
+        '''
+        eid is mandatory (cannot be None)
+        e_type is mandatory and has to be from valid choices
+        phone, emails and fcm_tokens if not present or None is ignored when updating
+        if present has to be list, and is set as it is
+        '''
+        try:
+            eid=request_data.get('eid', None)
+            e_type=request_data.get('e_type', None)
+            phones=request_data.get('phones', None)
+            emails=request_data.get('emails', None)
+            fcm_tokens=request_data.get('fcm_tokens', None)
+            if ((phones is None) or isinstance(phones, list)) and   \
+            ((emails is None) or isinstance(emails, list)) and      \
+            ((fcm_tokens is None) or isinstance(fcm_tokens, list)) :
+                #(e_type in list(zip(*AddrEntity.ENTITY_TYPE_CHOICES))[0]):
+                return cls(
+                    uuid.UUID(eid), e_type,
+                    phones, emails, fcm_tokens), CpError.NO_ERROR
+        except (ValueError, AttributeError) as e:
+            # request_data None
+            # invalid UUID
+            # TODO: Log exception and suppress raise
+            raise e
+        return None, CpError.INVALID_PARAMETERS
+
+    def get_entity_id(self)->uuid.uuid4:
+        return self._eid
+
+    def get_entity_type(self)->int:
+        return self._e_type
+
+    def get_phones(self)->List:
+        return self._phones
+
+    def get_emails(self)->List:
+        return self._emails
+
+    def get_fcm_tokens(self)->List:
+        return self._fcm_tokens

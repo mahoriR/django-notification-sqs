@@ -18,6 +18,10 @@ class AddrEntity(models.Model):
         (TYPE_DELIVERY_AGENT, 'Delivery Agent'),
         (TYPE_MERCHANT, 'Merchant'),
         )
+    
+    CONST_KEY_PHONES="ph"
+    CONST_KEY_EMAILS="em"
+    CONST_KEY_FCM_TOKENS="ft"
 
     eid = models.UUIDField(
         'Entity Id', primary_key=True)
@@ -25,6 +29,30 @@ class AddrEntity(models.Model):
     profile = JSONField(default=dict)
     created = models.DateTimeField(auto_now_add=True, auto_now=False)
     modified = models.DateTimeField(auto_now_add=False, auto_now=True)
+
+    @classmethod
+    def create(cls, eid, e_type, phones=None, emails=None, fcm_tokens=None):
+        phones,emails,fcm_tokens=phones or [],emails or [],fcm_tokens or []
+        profile={
+            cls.CONST_KEY_PHONES:phones,
+            cls.CONST_KEY_EMAILS:emails,
+            cls.CONST_KEY_FCM_TOKENS:fcm_tokens,
+            }
+        addr_entity = cls(eid=eid, e_type=e_type, profile=profile)
+        addr_entity.save()
+        return addr_entity
+
+    def update(self, phones=None, emails=None, fcm_tokens=None):
+        profile=self.profile
+        if phones is not None:
+            profile[self.CONST_KEY_PHONES]=phones
+        if emails is not None:
+            profile[self.CONST_KEY_EMAILS]=emails
+        if fcm_tokens is not None:
+            profile[self.CONST_KEY_FCM_TOKENS]=fcm_tokens
+        self.profile=profile
+        self.save()
+        return self
 
     def __str__(self):
         return '{0} - {1}'.format(str(self.eid), str(self.e_type))

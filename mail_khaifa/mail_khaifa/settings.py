@@ -76,7 +76,9 @@ import dj_database_url
 
 DATABASE_URL = config('DATABASE_URL')
 DATABASES = {}
-DATABASES['default'] = dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
+DEFAULT_DB_CONFIG = dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
+DEFAULT_DB_CONFIG['TEST']={'NAME': config('TEST_DB_NAME')}
+DATABASES['default'] = DEFAULT_DB_CONFIG
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
@@ -119,6 +121,8 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
     ),
+    #https://www.django-rest-framework.org/api-guide/versioning/#namespaceversioning
+    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning',
     'TEST_REQUEST_DEFAULT_FORMAT': 'json'
 
 }

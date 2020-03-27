@@ -11,6 +11,8 @@ ALTER ROLE mail_khaifa_user SET client_encoding TO 'utf8';
 ALTER ROLE mail_khaifa_user SET default_transaction_isolation TO 'read committed';
 ALTER ROLE mail_khaifa_user SET timezone TO 'UTC';
 GRANT ALL PRIVILEGES ON DATABASE mail_khaifa TO mail_khaifa_user;
+
+ALTER ROLE  mail_khaifa_user CREATEDB ; #Required only for running Unit tests locally.
 \q
 
 ```

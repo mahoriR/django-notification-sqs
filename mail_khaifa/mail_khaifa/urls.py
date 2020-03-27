@@ -18,5 +18,6 @@ from django.urls import path
 from django.conf.urls import url, include
 
 urlpatterns = [
-    path('notification/', include('notification.api.urls')),
+    #https://www.django-rest-framework.org/api-guide/versioning/#namespaceversioning
+    path('v1/notification/', include(('notification.api.urls', 'notification'), namespace='v1')),
 ]

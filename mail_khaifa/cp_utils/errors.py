@@ -5,3 +5,4 @@ ErrorInfo = collections.namedtuple('ErrorInfo', ('code', 'message'))
 class CpError(object):
     NO_ERROR=ErrorInfo(0, None)
     INVALID_PARAMETERS=ErrorInfo(1, 'Invalid Parameters')
+    UNKNOWN_ERROR=ErrorInfo(999, 'Unknown Error')

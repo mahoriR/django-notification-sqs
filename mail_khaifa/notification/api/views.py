@@ -1,28 +1,28 @@
-#from mail_khaifa.cp_utils.errors import CpError
-
-#from mail_khaifa.cp_utils.errors
 from django.core.exceptions import MultipleObjectsReturned
-
+from django.db.utils import IntegrityError
 from rest_framework import generics, status
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.exceptions import ParseError
 
 from ext_svc_mgr.ext_svc_mgr import ExternalServiceManager
 
+from cp_utils.errors import CpError
+
 from ..serializer import (
     QueuableSmsNotificationData, QueuableEmailNotificationData, QueuableNotificationData,
     QueuablePushNotificationData, AddressableEntity)
 
-from ..models import Notification
+from ..models import Notification, AddrEntity
 from ..queue_mgr import QueueWriter
 
+from ..model_serializers import AddrEntitySerializer
 
 @api_view(['POST'])
+@permission_classes((AllowAny,))
 def enqueue_sms(request):
     if request.method == 'POST':
         queue_data, cp_error = QueuableSmsNotificationData.from_request(request.data)
@@ -40,6 +40,7 @@ def enqueue_sms(request):
         return Response({'nid':queue_data.get_notifiaction_id()}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
+@permission_classes((AllowAny,))
 def enqueue_email(request):
     if request.method == 'POST':
         pass
@@ -47,6 +48,7 @@ def enqueue_email(request):
         return Response(content, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
+@permission_classes((AllowAny,))
 def enqueue_push(request):
     if request.method == 'POST':
         pass
@@ -54,13 +56,45 @@ def enqueue_push(request):
         return Response(content, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
+@permission_classes((AllowAny,))
 def create_or_update_entity(request):
+    error=CpError.UNKNOWN_ERROR
     if request.method == 'POST':
-        entity_data, cp_error = AddressableEntity.from_request(request.data)
+        try:
+            entity_data, cp_error = AddressableEntity.from_request(request.data)
+            if cp_error!=CpError.NO_ERROR:
+                return Response({'err':cp_error}, status=status.HTTP_400_BAD_REQUEST)
+            #if entity exists, update
+            #else create
+            if AddrEntity.objects.filter(eid=entity_data.get_entity_id()).exists():
+                #update
+                addr_entity=AddrEntity.objects.get(eid=entity_data.get_entity_id())
+                addr_entity=addr_entity.update(
+                    phones=entity_data.get_phones(),
+                    emails=entity_data.get_emails(),
+                    fcm_tokens=entity_data.get_fcm_tokens())
+                return Response(AddrEntitySerializer(addr_entity, many=False).data, status=status.HTTP_200_OK)
 
-        return Response(content, status=status.HTTP_200_OK)
+            #Create new
+            addr_entity=AddrEntity.create(
+                    eid=entity_data.get_entity_id(),
+                    e_type=entity_data.get_entity_type(),
+                    phones=entity_data.get_phones(),
+                    emails=entity_data.get_emails(),
+                    fcm_tokens=entity_data.get_fcm_tokens())
+            return Response(AddrEntitySerializer(addr_entity, many=False).data, status=status.HTTP_201_CREATED)
+        #django.db.utils.IntegrityError -> django.db.utils.IntegrityError: null value in column "e_type" violates not-null constraint
+        #ValueError -> ValueError: Field 'e_type' expected a number but got '3f6078e8-b34e-43db-936c-abc83912cb99'
+        except ValueError as e:
+            #TODO: Log Exception
+            error=CpError.INVALID_PARAMETERS
+        except IntegrityError as e:
+            #TODO: Log Exception
+            error=CpError.INVALID_PARAMETERS
+        return Response({'err':error}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
+@permission_classes((AllowAny,))
 def handle_enqued_notification(request):
     if request.method == 'POST':
         queue_data, cp_error = QueuableNotificationData.from_json(request.data)
@@ -92,8 +126,8 @@ def handle_enqued_notification(request):
 
         return Response(content, status=status.HTTP_200_OK)
 
-
 @api_view(['POST'])
+@permission_classes((AllowAny,))
 def handle_enqued_notification_state_cb(request):
     if request.method == 'POST':
         raise NotImplementedError()
