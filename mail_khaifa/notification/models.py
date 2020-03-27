@@ -4,7 +4,6 @@ from datetime import timedelta
 from django.db import models, IntegrityError
 from django.contrib.postgres.fields import JSONField
 
-
 class AddrEntity(models.Model):
     '''
     Addressable entities in Changepay System
@@ -92,4 +91,3 @@ class Notification(models.Model):
     @classmethod
     def update_state(cls, state, external_id=None):
         raise NotImplementedError()
-
