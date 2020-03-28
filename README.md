@@ -29,9 +29,5 @@ psql -d postgres://mail_khaifa_user:mail_khaifa_user_pwd@localhost:5433/mail_kha
 ## Running Tests
 
 ```
-coverage run --source='.' manage.py test
-
-coverage report
-
+./run_tests.sh
 ```
-

@@ -1,8 +1,11 @@
+from typing import List
 import json, base64, uuid
 from datetime import timedelta
 
 from django.db import models, IntegrityError
 from django.contrib.postgres.fields import JSONField
+
+from common_utils.exceptions import IllegalArgumentError
 
 class AddrEntity(models.Model):
     '''
@@ -54,7 +57,14 @@ class AddrEntity(models.Model):
         self.save()
         return self
 
-    def __str__(self):
+    def get_phones(self):
+        return self.profile[self.CONST_KEY_PHONES]
+    def get_emails(self):
+        return self.profile[self.CONST_KEY_EMAILS]
+    def get_fcm_tokens(self):
+        return self.profile[self.CONST_KEY_FCM_TOKENS]
+
+    def __str__(self): # pragma: no cover
         return '{0} - {1}'.format(str(self.eid), str(self.e_type))
 
 class Notification(models.Model):
@@ -86,8 +96,11 @@ class Notification(models.Model):
         (STATE_FAILED, 'Failed'),
         )
 
+    CONST_KEY_CB_PATH="cbp"
+    CONST_KEY_CB_STATES="cbs"
+
     nid = models.UUIDField('Notification Id', primary_key=True)
-    eid =  models.ForeignKey(
+    addr_entity =  models.ForeignKey(
         AddrEntity, on_delete=models.SET_NULL, blank=True, null=True,
     )
     n_type = models.PositiveIntegerField(choices=NOTIFICATION_TYPE_CHOICES)
@@ -103,19 +116,33 @@ class Notification(models.Model):
     created = models.DateTimeField(auto_now_add=True, auto_now=False)
     modified = models.DateTimeField(auto_now_add=False, auto_now=True)
 
-    def __str__(self):
+    def __str__(self): # pragma: no cover
         return '{0} - {1}'.format(str(self.nid), str(self.n_type))
 
     @classmethod
-    def insert_notification(cls, nid, eid, n_type):
-        notification = cls(nid=nid, eid=eid, n_type=n_type, n_state=cls.STATE_QUEUED, u_cancelled=0, ex_id=None)
+    def insert_notification(cls, nid:uuid.UUID, addr_entity:AddrEntity, n_type:int, cb_path:str, cb_states:List[int]):
+        cb_info={
+            cls.CONST_KEY_CB_PATH:cb_path,
+            cls.CONST_KEY_CB_STATES:cb_states
+        }
+        notification = cls(nid=nid, addr_entity=addr_entity, n_type=n_type, n_state=cls.STATE_QUEUED, u_cancelled=0, ex_id=None, cb_info=cb_info)
         notification.save()
         return notification
 
     @classmethod
-    def insert_sms(cls, nid, eid):
-        return cls.insert_notification(nid, eid, cls.TYPE_SMS)
+    def insert_sms(cls, nid:uuid.UUID, addr_entity:AddrEntity, cb_path:str=None, cb_states:List[int]=None):
+        return cls.insert_notification(nid, addr_entity, cls.TYPE_SMS, cb_path, cb_states)
 
-    @classmethod
-    def update_state(cls, state, external_id=None):
-        raise NotImplementedError()
+    def update_state(self, state:int, external_id:str):
+        if state not in list(zip(*self.NOTIFICATION_STATE_CHOICES))[0]:
+            raise IllegalArgumentError()
+        self.n_state=state
+        self.ex_id=external_id
+        self.save()
+        return self
+
+    def get_cb_states(self):
+        return self.cb_info.get(self.CONST_KEY_CB_STATES)
+
+    def get_cb_path(self):
+        return self.cb_info.get(self.CONST_KEY_CB_PATH)
