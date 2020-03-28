@@ -1,6 +1,6 @@
 import abc
 from .queuable_notification_state import QueuableNotificationStateABC
-from cp_utils.errors import ErrorInfo
+from common_utils.errors import Error
 
 class NotificationStateQueueWriterABC(abc.ABC):
     '''
@@ -8,8 +8,8 @@ class NotificationStateQueueWriterABC(abc.ABC):
     '''
     @classmethod
     @abc.abstractmethod
-    def enqueue_notification_state_cb(cls, data:QueuableNotificationStateABC)->ErrorInfo:...
+    def enqueue_notification_state_cb(cls, data:QueuableNotificationStateABC)->Error.ErrorInfo:...
 
     @classmethod
     @abc.abstractmethod
-    def enqueue_notification_state_cb(cls, data:QueuableNotificationStateABC)->ErrorInfo:...
+    def enqueue_notification_state_cb(cls, data:QueuableNotificationStateABC)->Error.ErrorInfo:...

@@ -1,10 +1,10 @@
 import abc
-from .serializer import QueuableNotificationDataABC, QueuableNotificationStateABC
+from .serializers.serializer import QueuableNotificationDataABC, QueuableNotificationStateABC
 
-from notification.interfaces.notif_data_writer import NotificationQueueWriterABC
-from notification.interfaces.notif_state_writer import NotificationStateQueueWriterABC
+from .interfaces.notif_data_writer import NotificationQueueWriterABC
+from .interfaces.notif_state_writer import NotificationStateQueueWriterABC
 
-from cp_utils.errors import ErrorInfo, CpError
+from common_utils.errors import Error
 
 class QueueWriter(NotificationQueueWriterABC, NotificationStateQueueWriterABC):
     '''
@@ -44,19 +44,19 @@ class QueueWriter(NotificationQueueWriterABC, NotificationStateQueueWriterABC):
         return QUEUE_NAMES[priority][q_num]
 
     @classmethod
-    def enqueue_notification(cls, priority:int, data:QueuableNotificationDataABC)->ErrorInfo:
+    def enqueue_notification(cls, priority:int, data:QueuableNotificationDataABC)->Error.ErrorInfo:
         '''
          Write to CP Queue
         '''
         pass
 
     @classmethod
-    def requeue_notification(cls, priority:int, data:QueuableNotificationDataABC)->ErrorInfo:
+    def requeue_notification(cls, priority:int, data:QueuableNotificationDataABC)->Error.ErrorInfo:
         '''
          Write to CP Queue
         '''
         pass
 
     @classmethod
-    def enqueue_notification_state_cb(cls, data:QueuableNotificationStateABC)->ErrorInfo:
+    def enqueue_notification_state_cb(cls, data:QueuableNotificationStateABC)->Error.ErrorInfo:
         ...

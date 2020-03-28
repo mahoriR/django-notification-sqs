@@ -10,23 +10,23 @@ from rest_framework.exceptions import ParseError
 
 from ext_svc_mgr.ext_svc_mgr import ExternalServiceManager
 
-from cp_utils.errors import CpError
+from common_utils.errors import Error
 
-from ..serializer import (
+from .serializers.serializer import (
     QueuableSmsNotificationData, QueuableEmailNotificationData, QueuableNotificationData,
     QueuablePushNotificationData, AddressableEntity)
 
-from ..models import Notification, AddrEntity
-from ..queue_mgr import QueueWriter
+from .models import Notification, AddrEntity
+from .queue_mgr import QueueWriter
 
-from ..model_serializers import AddrEntitySerializer
+from .serializers.model_serializers import AddrEntitySerializer
 
 @api_view(['POST'])
 @permission_classes((AllowAny,))
 def enqueue_sms(request):
     if request.method == 'POST':
         queue_data, cp_error = QueuableSmsNotificationData.from_request(request.data)
-        if cp_error!=CpError.NO_ERROR:
+        if cp_error!=Error.NO_ERROR:
             return Response({'err_mess':cp_error.message, 'err_code':cp_error.code}, status=status.HTTP_400_BAD_REQUEST)
 
         if queue_data.get_addressing_type()==QueuableSmsNotificationData.AddressingType.ENTITY:
@@ -34,7 +34,7 @@ def enqueue_sms(request):
         else: raise NotImplementedError()
 
         cp_error = QueueWriter.enqueue_notification(queue_data.get_priority(),  queue_data.to_json())
-        if cp_error!=CpError.NO_ERROR:
+        if cp_error!=Error.NO_ERROR:
             return Response({'err_mess':cp_error.message, 'err_code':cp_error.code}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({'nid':queue_data.get_notifiaction_id()}, status=status.HTTP_200_OK)
@@ -58,11 +58,11 @@ def enqueue_push(request):
 @api_view(['POST'])
 @permission_classes((AllowAny,))
 def create_or_update_entity(request):
-    error=CpError.UNKNOWN_ERROR
+    error=Error.UNKNOWN_ERROR
     if request.method == 'POST':
         try:
             entity_data, cp_error = AddressableEntity.from_request(request.data)
-            if cp_error!=CpError.NO_ERROR:
+            if cp_error!=Error.NO_ERROR:
                 return Response({'err':cp_error}, status=status.HTTP_400_BAD_REQUEST)
             #if entity exists, update
             #else create
@@ -87,10 +87,10 @@ def create_or_update_entity(request):
         #ValueError -> ValueError: Field 'e_type' expected a number but got '3f6078e8-b34e-43db-936c-abc83912cb99'
         except ValueError as e:
             #TODO: Log Exception
-            error=CpError.INVALID_PARAMETERS
+            error=Error.INVALID_PARAMETERS
         except IntegrityError as e:
             #TODO: Log Exception
-            error=CpError.INVALID_PARAMETERS
+            error=Error.INVALID_PARAMETERS
         return Response({'err':error}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])

@@ -1,8 +1,10 @@
 import collections
 
-ErrorInfo = collections.namedtuple('ErrorInfo', ('code', 'message'))
+class Error(object):
+    __slots__=[]
 
-class CpError(object):
+    ErrorInfo = collections.namedtuple('ErrorInfo', ('code', 'message'))
+
     NO_ERROR=ErrorInfo(0, None)
     INVALID_PARAMETERS=ErrorInfo(1, 'Invalid Parameters')
     UNKNOWN_ERROR=ErrorInfo(999, 'Unknown Error')

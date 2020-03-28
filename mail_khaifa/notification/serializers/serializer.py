@@ -1,15 +1,15 @@
 import abc, uuid, collections
 from typing import List
 
-from cp_utils.errors import ErrorInfo, CpError
+from common_utils.errors import Error
 
-from cp_utils.interfaces.request_serializer import RequestABC
+from common_utils.interfaces.request_serializer import RequestABC
 
-from .models import AddrEntity, Notification
+from ..models import AddrEntity, Notification
 
-from .interfaces.queuable_notification_data import QueuableNotificationDataABC
-from .interfaces.queuable_notification_state import QueuableNotificationStateABC
-from .interfaces.addressable_entity import AddressableEntityABC
+from ..interfaces.queuable_notification_data import QueuableNotificationDataABC
+from ..interfaces.queuable_notification_state import QueuableNotificationStateABC
+from ..interfaces.addressable_entity import AddressableEntityABC
 
 
 class QueuableNotificationData(QueuableNotificationDataABC):
@@ -88,16 +88,16 @@ class QueuableSmsNotificationData(QueuableNotificationData, RequestABC):
         pass
 
     @classmethod
-    def from_request(cls, request_data)->(QueuableNotificationData, ErrorInfo):
+    def from_request(cls, request_data)->(QueuableNotificationData, Error.ErrorInfo):
         if request_data.get('addressing_type', None) == cls.AddressingType.ENTITY:
             if request_data.get('nid', None) is None:
                 request_data['nid']=uuid.uuid4()
-            return cls(request_data), CpError.NO_ERROR
+            return cls(request_data), Error.NO_ERROR
         elif request_data.get('addressing_type', None) == cls.AddressingType.ENTITY_GROUP:
             sms_queue_data_list=[]
             for eid in request_data.get('to_entity', []):
                 sms_queue_data_list.append(cls(request_data))
-            return sms_queue_data_list, CpError.NO_ERROR
+            return sms_queue_data_list, Error.NO_ERROR
         else:
             raise NotImplementedError()
 
@@ -195,7 +195,7 @@ class AddressableEntity(AddressableEntityABC, RequestABC):
         self._fcm_tokens=fcm_tokens
 
     @classmethod
-    def from_request(cls, request_data)->(AddressableEntityABC, ErrorInfo):
+    def from_request(cls, request_data)->(AddressableEntityABC, Error.ErrorInfo):
         '''
         eid is mandatory (cannot be None)
         e_type is mandatory and has to be from valid choices
@@ -214,13 +214,13 @@ class AddressableEntity(AddressableEntityABC, RequestABC):
                 #(e_type in list(zip(*AddrEntity.ENTITY_TYPE_CHOICES))[0]):
                 return cls(
                     uuid.UUID(eid), e_type,
-                    phones, emails, fcm_tokens), CpError.NO_ERROR
+                    phones, emails, fcm_tokens), Error.NO_ERROR
         except (ValueError, AttributeError) as e:
             # request_data None
             # invalid UUID
             # TODO: Log exception and suppress raise
             raise e
-        return None, CpError.INVALID_PARAMETERS
+        return None, Error.INVALID_PARAMETERS
 
     def get_entity_id(self)->uuid.uuid4:
         return self._eid

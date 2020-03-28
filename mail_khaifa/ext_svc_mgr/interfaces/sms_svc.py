@@ -1,5 +1,5 @@
 import abc
-from notification.serializer import QueuableSmsNotificationData
+from notification.serializers.serializer import QueuableSmsNotificationData
 from .sent_result import SentResult
 
 class SmsServiceWrapperABC(abc.ABC):
