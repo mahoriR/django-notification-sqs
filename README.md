@@ -26,3 +26,12 @@ Connect to DB from command line using psql -
 psql -d postgres://mail_khaifa_user:mail_khaifa_user_pwd@localhost:5433/mail_khaifa
 ```
 
+## Running Tests
+
+```
+coverage run --source='.' manage.py test
+
+coverage report
+
+```
+
