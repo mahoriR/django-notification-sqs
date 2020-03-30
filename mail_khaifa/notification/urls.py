@@ -18,6 +18,7 @@ app_name = 'notification'
 
 urlpatterns = [
     url(r'^sms/send/$', views.enqueue_sms, name='sms-send'),                            #Called to Send Sms
+    url(r'^sms/send/bulk/$', views.enqueue_sms, name='sms-send'),                            #Called to Send Sms
     url(r'^email/send/$', views.enqueue_email, name='email-send'),                      #Called to Send Email
     url(r'^push/send/$', views.enqueue_push, name='push-send'),                         #Called to Push Notification
     url(r'entity/', views.create_or_update_entity, name='create_or_update_entity'),        #Called to Create or update entity

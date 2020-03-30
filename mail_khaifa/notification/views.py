@@ -25,19 +25,37 @@ from .serializers.model_serializers import AddrEntitySerializer
 @permission_classes((AllowAny,))
 def enqueue_sms(request):
     if request.method == 'POST':
-        queue_data, cp_error = QueuableSmsNotificationData.from_request(request.data)
-        if cp_error!=Error.NO_ERROR:
-            return Response({'err_mess':cp_error.message, 'err_code':cp_error.code}, status=status.HTTP_400_BAD_REQUEST)
+        queue_data, error = QueuableSmsNotificationData.from_request(request.data)
+        if error!=Error.NO_ERROR:
+            return Response({'err':error}, status=status.HTTP_400_BAD_REQUEST)
 
         if queue_data.get_addressing_type()==QueuableSmsNotificationData.AddressingType.ENTITY:
             notification = Notification.insert_sms(queue_data.get_notifiaction_id(), queue_data.get_entity_ids()[0])
         else: raise NotImplementedError()
 
-        cp_error = QueueWriter.enqueue_notification(queue_data.get_priority(),  queue_data.to_json())
-        if cp_error!=Error.NO_ERROR:
-            return Response({'err_mess':cp_error.message, 'err_code':cp_error.code}, status=status.HTTP_400_BAD_REQUEST)
+        error = QueueWriter.enqueue_notification(queue_data.get_priority(), queue_data.to_json())
+        if error!=Error.NO_ERROR:
+            return Response({'err':error}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({'nid':queue_data.get_notifiaction_id()}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+@permission_classes((AllowAny,))
+def enqueue_sms_bulk(request):
+    if request.method == 'POST':
+        queue_data, error = QueuableSmsNotificationData.from_request(request.data)
+        if error!=Error.NO_ERROR:
+            return Response({'err':error}, status=status.HTTP_400_BAD_REQUEST)
+
+        if queue_data.get_addressing_type()==QueuableSmsNotificationData.AddressingType.ENTITY:
+            notification = Notification.insert_sms(queue_data.get_notifiaction_id(), queue_data.get_entity_ids()[0])
+        else: raise NotImplementedError()
+
+        error = QueueWriter.enqueue_notification(queue_data.get_priority(), queue_data.to_json())
+        if error!=Error.NO_ERROR:
+            return Response({'err':error}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(status=status.HTTP_202_ACCEPTED)
 
 @api_view(['POST'])
 @permission_classes((AllowAny,))
