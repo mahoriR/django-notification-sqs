@@ -171,7 +171,6 @@ class QueuableSmsNotificationData(QueuableNotificationData, RequestABC):
         except KeyError: #if mandatory keys are not present in request
             return None, Error.INSUFFICIENT_PARAMETERS
 
-
 class QueuableEmailNotificationData(QueuableNotificationData, RequestABC):
     '''
         *Returns Email Queue Data*
@@ -254,12 +253,49 @@ class QueuablePushNotificationData(QueuableNotificationData, RequestABC):
 
         '''
 
-class QueuableNotificationState(QueuableNotificationStateABC):
-    pass
 
+class QueuableNotificationState(QueuableNotificationStateABC):
+    def __init__(self, n_id, n_state, cb_url, retry_count=0):
+        self._n_state=Notification.NotificationState(n_state)
+        self._n_id=uuid.UUID(n_id)
+        self._retry_count=retry_count
+        self._cb_url=cb_url
+    
+    def get_notification_state(self)->Notification.NotificationState:
+        return self._n_state
+
+    def get_notifiaction_id(self)->uuid.UUID:
+        return self._n_id
+
+    def get_retry_count(self)->int:
+        return self._retry_count
+
+    def set_retry_count(self, retry_count:int):
+        self._retry_count=retry_count
+
+    def get_notifiaction_cb_url(self)->str:
+        return self._cb_url
+
+    def get_max_timestamp(self)->int:
+        super(QueuableNotificationStateABC).get_max_timestamp()
+    
+    def get_max_retry_count(self):
+        return super().get_max_retry_count()
+
+    def to_dict(self)->Dict:
+        return {
+            'n_state':self._n_state,
+            'n_id':str(self._n_id),
+            'retry_count':self._retry_count,
+            'cb_url':self._cb_url
+        }
+
+    @classmethod
+    def from_dict(cls, dict_data:Dict)->QueuableNotificationStateABC:
+        return cls(**dict_data)
 
 class AddressableEntity(AddressableEntityABC, RequestABC):
-    def __init__(self, eid:uuid, e_type:int, phones:list, emails:list, fcm_tokens:list):
+    def __init__(self, eid:uuid.UUID, e_type:int, phones:List, emails:List, fcm_tokens:List):
         self._eid=eid
         self._e_type=e_type
         self._phones=phones

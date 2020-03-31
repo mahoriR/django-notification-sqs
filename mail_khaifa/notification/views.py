@@ -1,3 +1,5 @@
+import requests
+
 from django.core.exceptions import MultipleObjectsReturned
 from django.db.utils import IntegrityError
 from rest_framework import generics, status
@@ -14,7 +16,7 @@ from common_utils.errors import Error
 
 from .serializers.serializer import (
     QueuableSmsNotificationData, QueuableEmailNotificationData, QueuableNotificationData,
-    QueuablePushNotificationData, AddressableEntity)
+    QueuablePushNotificationData, AddressableEntity, QueuableNotificationState)
 
 from .models import Notification, AddrEntity
 from .queue_mgr import QueueWriter
@@ -121,7 +123,11 @@ def handle_enqued_notification(request):
             NotifClass=QueuableSmsNotificationData
         elif queue_data.get_notifiaction_type()==Notification.NotificationType.TYPE_EMAIL:
             raise NotImplementedError()
-            
+        elif queue_data.get_notifiaction_type()==Notification.NotificationType.TYPE_PUSH:
+            raise NotImplementedError()
+        else:
+            raise RuntimeError('Unknown Notification Type: '+str(queue_data.get_notifiaction_type()))
+
         queue_data, cp_error = NotifClass.from_dict(request.data)
         result=ExternalServiceManager.send(queue_data)
 
@@ -138,18 +144,22 @@ def handle_enqued_notification(request):
 
         if queue_data.notification_cb_url() and (updated_state in queue_data.notification_cb_states()):
             notification_state_cb=QueuableNotificationState(
-                updated_state, queue_data.get_notifiaction_id(),
-                queue_data.notification_cb_url(), queue_data.notification_cb_states(), 0)
-            #TBD: Check Errror
+                queue_data.get_notifiaction_id(), updated_state, queue_data.notification_cb_url(), 0)
+            #TBD : Check Errror
             QueueWriter.enqueue_notification_state_cb(notification_state_cb)
 
-
-        return Response(content, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes((AllowAny,))
 def handle_enqued_notification_state_cb(request):
     if request.method == 'POST':
-        raise NotImplementedError()
-
-        return Response(content, status=status.HTTP_200_OK)
+        #Call external Service. If call fails, reque.
+        notification_state_cb=QueuableNotificationState.from_dict(request.data)
+        r=requests.post(notification_state_cb.get_notifiaction_cb_url(), data={'state':notification_state_cb.get_notification_state()})
+        if (r.status_code != requests.codes.ok) and (notification_state_cb.get_retry_count() < notification_state_cb.get_max_retry_count()):
+            #requeue if retry count not already exceed 3?
+            notification_state_cb.set_retry_count(notification_state_cb.get_retry_count()+1)
+            QueueWriter.enqueue_notification_state_cb(notification_state_cb)
+        #We are not queueing anymore as max retries exceeded
+        return Response(status=status.HTTP_200_OK)
