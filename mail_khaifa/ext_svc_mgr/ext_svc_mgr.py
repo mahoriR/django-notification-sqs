@@ -1,9 +1,8 @@
-import random
-from notification.models import Notification
-from notification.interfaces.notification_data import NotificationDataABC
+import random, collections
+from ..notification.models import Notification
+from ..notification.interfaces.notification_data import NotificationDataABC
 from .interfaces.sms_svc import SmsServiceWrapperABC
 from .interfaces.sent_result import SentResult
-from .interfaces.state_transition import StateTransitionABC
 
 class MSG91Wrapper(SmsServiceWrapperABC):
     '''
@@ -20,6 +19,7 @@ class ExternalServiceManager(object):
     '''
     Class that manages all external service wrappers to send sms, Email, push notifications
     '''
+    StateTransition=collections.namedtuple('StateTransition', ('external_id', 'updated_state'))
     SMS_SENDERS=[MSG91Wrapper]
 
     @classmethod
@@ -28,5 +28,5 @@ class ExternalServiceManager(object):
             return SMS_SENDERS[random.randint(0, len(SMS_SENDERS))].send(data)
 
     @classmethod
-    def handle_callback(cls, request_data)->StateTransitionABC:
+    def handle_callback(cls, request_data, client_identifier)->StateTransition:
         raise NotImplementedError()

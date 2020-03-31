@@ -273,7 +273,7 @@ class QueuableNotificationState(QueuableNotificationStateABC):
     def set_retry_count(self, retry_count:int):
         self._retry_count=retry_count
 
-    def get_notifiaction_cb_url(self)->str:
+    def get_notification_cb_url(self)->str:
         return self._cb_url
 
     def get_max_timestamp(self)->int:
