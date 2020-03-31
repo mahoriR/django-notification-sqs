@@ -1,6 +1,6 @@
 import abc
 
-class SentResult(abc.ABC):
+class SentResultABC(abc.ABC):
     '''
     Implemented by result of external service(SMS/Email) API call's result representation
     '''

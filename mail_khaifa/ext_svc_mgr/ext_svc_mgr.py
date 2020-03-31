@@ -3,6 +3,7 @@ from notification.models import Notification
 from notification.interfaces.notification_data import NotificationDataABC
 from .interfaces.sms_svc import SmsServiceWrapperABC
 from .interfaces.sent_result import SentResult
+from .interfaces.state_transition import StateTransitionABC
 
 class MSG91Wrapper(SmsServiceWrapperABC):
     '''
@@ -27,5 +28,5 @@ class ExternalServiceManager(object):
             return SMS_SENDERS[random.randint(0, len(SMS_SENDERS))].send(data)
 
     @classmethod
-    def handle_callback(cls, request_data):
+    def handle_callback(cls, request_data)->StateTransitionABC:
         raise NotImplementedError()

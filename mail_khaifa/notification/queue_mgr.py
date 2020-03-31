@@ -1,4 +1,4 @@
-import abc
+import abc, time
 from .serializers.serializer import QueuableNotificationDataABC, QueuableNotificationStateABC
 
 from .interfaces.notif_data_writer import NotificationQueueWriterABC
@@ -44,17 +44,16 @@ class QueueWriter(NotificationQueueWriterABC, NotificationStateQueueWriterABC):
         return QUEUE_NAMES[priority][q_num]
 
     @classmethod
-    def enqueue_notification(cls, priority:int, data:QueuableNotificationDataABC)->Error.ErrorInfo:
+    def enqueue_notification(cls, data:QueuableNotificationDataABC)->Error.ErrorInfo:
         '''
          Write to CP Queue
         '''
-        pass
+        if data.get_max_timestamp() < int(time.time()) :
+            #we need to check, that current Timestamp is not past this.
+            return Error.CONSTRAINTS_NOT_POSSIBLE
 
-    @classmethod
-    def requeue_notification(cls, priority:int, data:QueuableNotificationDataABC)->Error.ErrorInfo:
-        '''
-         Write to CP Queue
-        '''
+        queue_payload=data.to_dict()
+        #if we are pushing to external Queue, we need to add our CB and other params as well.
         pass
 
     @classmethod

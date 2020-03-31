@@ -29,11 +29,11 @@ def enqueue_sms(request):
         if error!=Error.NO_ERROR:
             return Response({'err':error}, status=status.HTTP_400_BAD_REQUEST)
 
-        if queue_data.get_addressing_type()==QueuableSmsNotificationData.AddressingType.ENTITY:
-            notification = Notification.insert_sms(queue_data.get_notifiaction_id(), queue_data.get_entity_ids()[0])
-        else: raise NotImplementedError()
+        notification = Notification.insert_sms(
+            queue_data.get_notifiaction_id(), queue_data.get_addr_entity(),
+            queue_data.get_notification_cb_url(), queue_data.get_notification_cb_states())
 
-        error = QueueWriter.enqueue_notification(queue_data.get_priority(), queue_data.to_json())
+        error = QueueWriter.enqueue_notification(queue_data)
         if error!=Error.NO_ERROR:
             return Response({'err':error}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -115,32 +115,34 @@ def create_or_update_entity(request):
 @permission_classes((AllowAny,))
 def handle_enqued_notification(request):
     if request.method == 'POST':
-        queue_data, cp_error = QueuableNotificationData.from_json(request.data)
-        if queue_data.get_notifiaction_type()==Notification.TYPE_SMS:
+        queue_data, cp_error = QueuableNotificationData.from_dict(request.data)
 
-            # Handle the Request to Send SMS
-            queue_data, cp_error = QueuableSmsNotificationData.from_json(request.data)
-            result=ExternalServiceManager.send(queue_data)
-
-            #Update DB with state
-            updated_state=Notification.STATE_FAILED
-            external_id=None
-            if result.is_success():
-                updated_state=Notification.STATE_SENT
-                external_id=result.get_external_id()
-
-            #Update DB
-            Notification=Notification.update_state(updated_state, external_id)
-
-            if updated_state in queue_data.notification_cb_states():
-                #Enqueue Callback for Sent, if required
-                notification_state_cb=QueuableNotificationState(
-                    updated_state, queue_data.get_notifiaction_id(),
-                    queue_data.notification_cb_url(), queue_data.notification_cb_states(), 0)
-                #TBD: Check Errror
-                QueueWriter.enqueue_notification_state_cb(notification_state_cb)
-        else:
+        if queue_data.get_notifiaction_type()==Notification.NotificationType.TYPE_SMS:
+            NotifClass=QueuableSmsNotificationData
+        elif queue_data.get_notifiaction_type()==Notification.NotificationType.TYPE_EMAIL:
             raise NotImplementedError()
+            
+        queue_data, cp_error = NotifClass.from_dict(request.data)
+        result=ExternalServiceManager.send(queue_data)
+
+        #Update DB with state
+        updated_state=Notification.NotificationState.STATE_FAILED
+        external_id=None
+        if result.is_success():
+            updated_state=Notification.NotificationState.STATE_SENT
+            external_id=result.get_external_id()
+
+        #Update DB
+        notification=Notification.objects.get(nid=queue_data.get_notifiaction_id())
+        notification=notification.update_state(updated_state, external_id)
+
+        if queue_data.notification_cb_url() and (updated_state in queue_data.notification_cb_states()):
+            notification_state_cb=QueuableNotificationState(
+                updated_state, queue_data.get_notifiaction_id(),
+                queue_data.notification_cb_url(), queue_data.notification_cb_states(), 0)
+            #TBD: Check Errror
+            QueueWriter.enqueue_notification_state_cb(notification_state_cb)
+
 
         return Response(content, status=status.HTTP_200_OK)
 

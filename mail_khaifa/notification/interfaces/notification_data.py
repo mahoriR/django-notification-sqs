@@ -17,27 +17,18 @@ class NotificationDataABC(abc.ABC):
     def get_notifiaction_id(self)->uuid.UUID:...
 
     @abc.abstractmethod
-    def get_entity_ids(self)->List:...
-
-    @abc.abstractmethod
-    def get_addressing_group_ids(self):...
-
-    @abc.abstractmethod
-    def get_addressing_type(self)->AddressingType:...
-
-    @abc.abstractmethod
     def get_notification_type(self)->int:...
 
     @abc.abstractclassmethod
-    def get_notification_content(self):
+    def get_payload(self):
         '''
         Get Content as per the notificaiton type
         '''
         ...
+
     @abc.abstractmethod
-    def notification_cb_url(self)->str:
-        ...
-    @abc.abstractmethod
-    def notification_cb_states(self)->List[int]:
+    def get_notification_cb_url(self)->str:
         ...
 
+    @abc.abstractmethod
+    def get_notification_cb_states(self)->List[int]:...

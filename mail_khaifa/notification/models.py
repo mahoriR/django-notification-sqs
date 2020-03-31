@@ -1,3 +1,4 @@
+import enum
 from typing import List
 import json, base64, uuid
 from datetime import timedelta
@@ -12,26 +13,35 @@ class AddrEntity(models.Model):
     Addressable entities in Changepay System
     '''
 
-    TYPE_CUSTOMER = 1
-    TYPE_DELIVERY_AGENT = 2
-    TYPE_MERCHANT = 3
+    class AddrEntityType(enum.IntEnum):
+        TYPE_CUSTOMER = 1
+        TYPE_DELIVERY_AGENT = 2
+        TYPE_MERCHANT = 3
 
     ENTITY_TYPE_CHOICES = (
-        (TYPE_CUSTOMER, 'Customer'),
-        (TYPE_DELIVERY_AGENT, 'Delivery Agent'),
-        (TYPE_MERCHANT, 'Merchant'),
+        (AddrEntityType.TYPE_CUSTOMER.value, 'Customer'),
+        (AddrEntityType.TYPE_DELIVERY_AGENT.value, 'Delivery Agent'),
+        (AddrEntityType.TYPE_MERCHANT.value, 'Merchant'),
         )
     
     CONST_KEY_PHONES="ph"
     CONST_KEY_EMAILS="em"
     CONST_KEY_FCM_TOKENS="ft"
 
-    eid = models.UUIDField(
-        'Entity Id', primary_key=True)
+    eid = models.UUIDField()
     e_type = models.PositiveIntegerField(choices=ENTITY_TYPE_CHOICES)
     profile = JSONField(default=dict)
     created = models.DateTimeField(auto_now_add=True, auto_now=False)
     modified = models.DateTimeField(auto_now_add=False, auto_now=True)
+
+    class Meta:
+        constraints=[
+            models.UniqueConstraint(fields=['eid', 'e_type'], name="notification_addrentity_eid_e_type_ut_cnstrt")
+            ]
+        db_table='notification_svc_addrentity'
+        indexes=[
+            models.Index(fields=['eid', 'e_type'], name='notification_addrentity_eid_e_type_idx')
+            ]
 
     @classmethod
     def create(cls, eid, e_type, phones=None, emails=None, fcm_tokens=None):
@@ -72,28 +82,30 @@ class Notification(models.Model):
     Notifications.
     '''
 
-    TYPE_SMS = 1
-    TYPE_EMAIL = 2
-    TYPE_PUSH = 3
+    class NotificationType(enum.IntEnum):
+        TYPE_SMS = 1
+        TYPE_EMAIL = 2
+        TYPE_PUSH = 3
 
     NOTIFICATION_TYPE_CHOICES = (
-        (TYPE_SMS, 'Sms'),
-        (TYPE_EMAIL, 'Email'),
-        (TYPE_PUSH, 'Push (Android/iOS)'),
+        (NotificationType.TYPE_SMS.value, 'Sms'),
+        (NotificationType.TYPE_EMAIL.value, 'Email'),
+        (NotificationType.TYPE_PUSH.value, 'Push (Android/iOS)'),
         )
 
-    STATE_QUEUED = 1
-    STATE_SENT = 2
-    STATE_DELIVERED = 3
-    STATE_READ = 4
-    STATE_FAILED = 5
+    class NotificationState(enum.IntEnum):
+        STATE_QUEUED = 1
+        STATE_SENT = 2
+        STATE_DELIVERED = 3
+        STATE_READ = 4
+        STATE_FAILED = 5
 
     NOTIFICATION_STATE_CHOICES = (
-        (STATE_QUEUED, 'Queued'),
-        (STATE_SENT, 'Sent'),
-        (STATE_DELIVERED, 'Delivered'),
-        (STATE_READ, 'Read'),
-        (STATE_FAILED, 'Failed'),
+        (NotificationState.STATE_QUEUED.value, 'Queued'),
+        (NotificationState.STATE_SENT.value, 'Sent'),
+        (NotificationState.STATE_DELIVERED.value, 'Delivered'),
+        (NotificationState.STATE_READ.value, 'Read'),
+        (NotificationState.STATE_FAILED.value, 'Failed'),
         )
 
     CONST_KEY_CB_PATH="cbp"
@@ -119,6 +131,9 @@ class Notification(models.Model):
     def __str__(self): # pragma: no cover
         return '{0} - {1}'.format(str(self.nid), str(self.n_type))
 
+    class Meta:
+        db_table='notification_svc_notification'
+
     @classmethod
     def insert_notification(cls, nid:uuid.UUID, addr_entity:AddrEntity, n_type:int, cb_path:str, cb_states:List[int]):
         cb_info={
@@ -134,9 +149,8 @@ class Notification(models.Model):
         return cls.insert_notification(nid, addr_entity, cls.TYPE_SMS, cb_path, cb_states)
 
     def update_state(self, state:int, external_id:str):
-        if state not in list(zip(*self.NOTIFICATION_STATE_CHOICES))[0]:
-            raise IllegalArgumentError()
-        self.n_state=state
+        state=self.NotificationState(state) #to check
+        self.n_state=state.value
         self.ex_id=external_id
         self.save()
         return self

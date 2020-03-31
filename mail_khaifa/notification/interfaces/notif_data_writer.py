@@ -9,14 +9,4 @@ class NotificationQueueWriterABC(abc.ABC):
 
     @classmethod
     @abc.abstractmethod
-    def enqueue_notification(cls, priority:int, data:QueuableNotificationDataABC)->Error.ErrorInfo:...
-
-    @classmethod
-    @abc.abstractmethod
-    def requeue_notification(cls, priority:int, data:QueuableNotificationDataABC)->Error.ErrorInfo:
-        '''
-        Checks for Queuing timestamp before calling enqueue_notification
-
-        Returns Error if requeuing not valid because time has passed
-        '''
-        ...
+    def enqueue_notification(cls, data:QueuableNotificationDataABC)->Error.ErrorInfo:...

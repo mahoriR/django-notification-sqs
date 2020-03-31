@@ -9,7 +9,3 @@ class NotificationStateQueueWriterABC(abc.ABC):
     @classmethod
     @abc.abstractmethod
     def enqueue_notification_state_cb(cls, data:QueuableNotificationStateABC)->Error.ErrorInfo:...
-
-    @classmethod
-    @abc.abstractmethod
-    def enqueue_notification_state_cb(cls, data:QueuableNotificationStateABC)->Error.ErrorInfo:...

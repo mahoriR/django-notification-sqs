@@ -1,12 +1,13 @@
 import abc, uuid
 from typing import List
 
+from ..models import AddrEntity
 
 class AddressableEntityABC(abc.ABC):
     @abc.abstractmethod
     def get_entity_id(self)->uuid.UUID:...
     @abc.abstractmethod
-    def get_entity_type(self)->int:...
+    def get_entity_type(self)->AddrEntity.AddrEntityType:...
     @abc.abstractmethod
     def get_phones(self)->List[str]:...
     @abc.abstractmethod
