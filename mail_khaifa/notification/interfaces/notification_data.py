@@ -1,5 +1,5 @@
 import abc, enum, uuid
-from typing import List
+from typing import List, Dict
 
 class NotificationDataABC(abc.ABC):
     '''
@@ -19,16 +19,11 @@ class NotificationDataABC(abc.ABC):
     @abc.abstractmethod
     def get_notification_type(self)->int:...
 
-    @abc.abstractclassmethod
-    def get_payload(self):
-        '''
-        Get Content as per the notificaiton type
-        '''
-        ...
+    @abc.abstractmethod
+    def get_payload(self)->Dict:...
 
     @abc.abstractmethod
-    def get_notification_cb_url(self)->str:
-        ...
+    def get_notification_cb_url(self)->str:...
 
     @abc.abstractmethod
     def get_notification_cb_states(self)->List[int]:...
