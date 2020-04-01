@@ -29,7 +29,17 @@ class QueuableSmsNotificationDataTestCases(TestCase):
             'template_name':"template-one-name",
         }
         data, error=QueuableSmsNotificationData.from_request(request_data)
+
         self.assertEqual(error, Error.NO_ERROR)
+
+        self.assertEqual(data.get_addr_entity(), self.addr_entity)
+        self.assertEqual(data.get_priority(), request_data['priority'])
+        self.assertEqual(data.get_notifiaction_id(), uuid.UUID(request_data['n_id']))
+        self.assertEqual(data.get_notification_type(), Notification.NotificationType.TYPE_SMS)
+        self.assertEqual(data.get_notification_cb_url(), request_data['cb_url'])
+        self.assertEqual(data.get_notification_cb_states(), request_data['cb_states'])
+        self.assertEqual(data.get_max_timestamp(), request_data['max_ts'])
+
         dict_payload={
             'from_code':request_data['from_code'],
             'from_phone':request_data['from_phone'],
