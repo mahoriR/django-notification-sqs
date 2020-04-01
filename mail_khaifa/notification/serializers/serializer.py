@@ -132,6 +132,9 @@ class QueuableSmsNotificationData(QueuableNotificationData, RequestABC):
     @classmethod
     def from_dict(cls, dict_data:Dict):
         payload=dict_data.pop('payload')
+        if 'to_phones' in payload: #this is added when creating dict.
+            payload.pop('to_phones')
+        dict_data['to_entity']=dict_data['to_entity_type']=None #These are not required as e_pk is present
         return cls(**dict_data, **payload)
 
     def get_payload(self)->Dict:

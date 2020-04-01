@@ -30,11 +30,25 @@ class QueuableSmsNotificationDataTestCases(TestCase):
         }
         data, error=QueuableSmsNotificationData.from_request(request_data)
         self.assertEqual(error, Error.NO_ERROR)
-        self.assertEqual(data.get_payload(), {
+        dict_payload={
             'from_code':request_data['from_code'],
             'from_phone':request_data['from_phone'],
             'to_phones':self.addr_entity.get_phones(),
             'sms_type':request_data['sms_type'],
             'sms_text':request_data['sms_text'],
             'template_name':request_data['template_name']
-        })
+        }
+        self.assertEqual(data.get_payload(), dict_payload)
+        data_dict={
+            'payload':dict_payload,
+            'n_id':request_data['n_id'],
+            'n_type':Notification.NotificationType.TYPE_SMS,
+            'e_pk':self.addr_entity.pk,
+            'priority':request_data['priority'],
+            'cb_url':request_data['cb_url'],
+            'cb_states':request_data['cb_states'],
+            'max_ts':request_data['max_ts']
+        }
+        self.assertEqual(data.to_dict(), data_dict)
+        #round trip complete!
+        self.assertEqual(data.to_dict(), QueuableSmsNotificationData.from_dict(data_dict).to_dict())
