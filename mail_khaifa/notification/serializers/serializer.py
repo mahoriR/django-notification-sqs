@@ -75,7 +75,7 @@ class QueuableNotificationData(QueuableNotificationDataABC):
     def get_addr_entity(self)->AddrEntity:
         return self._addr_entity
 
-    def get_priority(self)->PriorityType:
+    def get_priority(self)->QueuableNotificationDataABC.PriorityType:
         return self._priority
 
     def get_notifiaction_id(self)->uuid.UUID:

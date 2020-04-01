@@ -1,6 +1,6 @@
 import abc
 from notification.serializers.serializer import QueuableSmsNotificationData
-from .sent_result import SentResult
+from .sent_result import SentResultABC
 
 class SmsServiceWrapperABC(abc.ABC):
     '''
@@ -8,7 +8,7 @@ class SmsServiceWrapperABC(abc.ABC):
     '''
     @classmethod
     @abc.abstractmethod
-    def send(cls, data:QueuableSmsNotificationData)->SentResult:
+    def send(cls, data:QueuableSmsNotificationData)->SentResultABC:
         ...
 
     @classmethod

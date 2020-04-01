@@ -36,11 +36,11 @@ class AddrEntity(models.Model):
 
     class Meta:
         constraints=[
-            models.UniqueConstraint(fields=['eid', 'e_type'], name="notification_addrentity_eid_e_type_ut_cnstrt")
+            models.UniqueConstraint(fields=['eid', 'e_type'], name="notif_a_entity_eid_e_type_uct")
             ]
         db_table='notification_svc_addrentity'
         indexes=[
-            models.Index(fields=['eid', 'e_type'], name='notification_addrentity_eid_e_type_idx')
+            models.Index(fields=['eid', 'e_type'], name='notif_a_entity_eid_e_type_idx')
             ]
 
     @classmethod
@@ -140,13 +140,13 @@ class Notification(models.Model):
             cls.CONST_KEY_CB_PATH:cb_path,
             cls.CONST_KEY_CB_STATES:cb_states
         }
-        notification = cls(nid=nid, addr_entity=addr_entity, n_type=n_type, n_state=cls.STATE_QUEUED, u_cancelled=0, ex_id=None, cb_info=cb_info)
+        notification = cls(nid=nid, addr_entity=addr_entity, n_type=n_type, n_state=cls.NotificationState.STATE_QUEUED, u_cancelled=0, ex_id=None, cb_info=cb_info)
         notification.save()
         return notification
 
     @classmethod
     def insert_sms(cls, nid:uuid.UUID, addr_entity:AddrEntity, cb_path:str=None, cb_states:List[int]=None):
-        return cls.insert_notification(nid, addr_entity, cls.TYPE_SMS, cb_path, cb_states)
+        return cls.insert_notification(nid, addr_entity, cls.NotificationType.TYPE_SMS, cb_path, cb_states)
 
     def update_state(self, state:int, external_id:str):
         state=self.NotificationState(state) #to check

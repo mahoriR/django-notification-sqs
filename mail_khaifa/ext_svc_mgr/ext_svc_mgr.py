@@ -1,8 +1,8 @@
 import random, collections
-from ..notification.models import Notification
-from ..notification.interfaces.notification_data import NotificationDataABC
+from notification.models import Notification
+from notification.interfaces.notification_data import NotificationDataABC
 from .interfaces.sms_svc import SmsServiceWrapperABC
-from .interfaces.sent_result import SentResult
+from .interfaces.sent_result import SentResultABC
 
 class MSG91Wrapper(SmsServiceWrapperABC):
     '''
@@ -23,7 +23,7 @@ class ExternalServiceManager(object):
     SMS_SENDERS=[MSG91Wrapper]
 
     @classmethod
-    def send(cls, data:NotificationDataABC)->SentResult:
+    def send(cls, data:NotificationDataABC)->SentResultABC:
         if data.get_notification_type()==Notification.TYPE_SMS:
             return SMS_SENDERS[random.randint(0, len(SMS_SENDERS))].send(data)
 

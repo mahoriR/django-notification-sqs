@@ -10,5 +10,5 @@ urlpatterns = [
     re_path(r'^push/send/$', views.enqueue_push, name='push-send'),                             #Called to Push Notification
     re_path(r'^entity/', views.create_or_update_entity, name='create_or_update_entity'),        #Called to Create or update entity
     re_path(r'^cb/queue/', views.handle_enqued_notification, name='queue-cb'),                  #called by CP Queue with notification Data
-    re_path(r'^cb/<slug:client_identifier>/', views.handle_external_svc_cb, name='ext_svc_cb'), #called by External services
+    re_path(r'^ext/cb/<slug:client_identifier>/', views.handle_external_svc_cb, name='ext_svc_cb'), #called by External services
 ]
