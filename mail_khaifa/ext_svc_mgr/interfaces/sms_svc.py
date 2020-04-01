@@ -1,6 +1,6 @@
-import abc
+import abc, typing
 from notification.serializers.serializer import QueuableSmsNotificationData
-from .sent_result import SentResultABC
+from ..named_tuples import StateTransition, ExtClientResult
 
 class SmsServiceWrapperABC(abc.ABC):
     '''
@@ -8,10 +8,10 @@ class SmsServiceWrapperABC(abc.ABC):
     '''
     @classmethod
     @abc.abstractmethod
-    def send(cls, data:QueuableSmsNotificationData)->SentResultABC:
+    def send(cls, data:QueuableSmsNotificationData)->ExtClientResult:
         ...
 
     @classmethod
     @abc.abstractmethod
-    def handle_callback(cls, request_data):
+    def handle_callback(cls, request_data:typing.Dict)->StateTransition:
         ...

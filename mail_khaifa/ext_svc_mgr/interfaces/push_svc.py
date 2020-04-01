@@ -1,5 +1,6 @@
-import abc
+import abc, typing
 from notification.api.serializer import QueuablePushNotificationData
+from ..named_tuples import StateTransition, ExtClientResult
 
 class PushServiceWrapperABC(abc.ABC):
     '''
@@ -7,10 +8,10 @@ class PushServiceWrapperABC(abc.ABC):
     '''
     @classmethod
     @abc.abstractmethod
-    def send(cls, data:QueuablePushNotificationData)->SentResult:
+    def send(cls, data:QueuablePushNotificationData)->ExtClientResult:
         ...
 
     @classmethod
     @abc.abstractmethod
-    def handle_callback(cls, request_data):
+    def handle_callback(cls, request_data:typing.Dict)->StateTransition:
         ...

@@ -116,7 +116,7 @@ class QueuableSmsNotificationData(QueuableNotificationData, RequestABC):
                         3. OTP             = 1
         template_name - Name of SMS template\n
         """
-        super(QueuableNotificationData).__init__(n_id, n_type, e_pk, to_entity, to_entity_type, priority, cb_url, cb_states, max_ts)
+        super().__init__(n_id, n_type, e_pk, to_entity, to_entity_type, priority, cb_url, cb_states, max_ts)
         self._from_code=from_code
         self._from_phone=from_phone
         self._sms_text=sms_text
@@ -125,7 +125,7 @@ class QueuableSmsNotificationData(QueuableNotificationData, RequestABC):
         self._template_name=template_name
 
     def to_dict(self)->Dict:
-        dict_data=super(QueuableNotificationData).to_dict()
+        dict_data=super().to_dict()
         dict_data["payload"]=self.get_payload()
         return dict_data
 
@@ -150,7 +150,7 @@ class QueuableSmsNotificationData(QueuableNotificationData, RequestABC):
         try:
             return cls(
                 request_data.get('n_id', None),
-                Notification.TYPE_SMS,
+                Notification.NotificationType.TYPE_SMS,
                 None,
                 request_data['to_entity'],
                 request_data['to_entity_type'],
@@ -165,10 +165,13 @@ class QueuableSmsNotificationData(QueuableNotificationData, RequestABC):
                 request_data.get('template_name', None),
             ), Error.NO_ERROR
         except ValueError: # Illegal params, invalid values for params
+            raise 
             return None, Error.INVALID_PARAMETERS
         except AttributeError: #if request data is None
+            raise 
             return None, Error.INVALID_PARAMETERS
         except KeyError: #if mandatory keys are not present in request
+            raise 
             return None, Error.INSUFFICIENT_PARAMETERS
 
 class QueuableEmailNotificationData(QueuableNotificationData, RequestABC):
@@ -277,7 +280,7 @@ class QueuableNotificationState(QueuableNotificationStateABC):
         return self._cb_url
 
     def get_max_timestamp(self)->int:
-        super(QueuableNotificationStateABC).get_max_timestamp()
+        super().get_max_timestamp()
     
     def get_max_retry_count(self):
         return super().get_max_retry_count()
@@ -295,9 +298,9 @@ class QueuableNotificationState(QueuableNotificationStateABC):
         return cls(**dict_data)
 
 class AddressableEntity(AddressableEntityABC, RequestABC):
-    def __init__(self, eid:uuid.UUID, e_type:int, phones:List, emails:List, fcm_tokens:List):
+    def __init__(self, eid:uuid.UUID, e_type:AddrEntity.AddrEntityType, phones:List, emails:List, fcm_tokens:List):
         self._eid=eid
-        self._e_type=e_type
+        self._e_type=AddrEntity.AddrEntityType(e_type)
         self._phones=phones
         self._emails=emails
         self._fcm_tokens=fcm_tokens
@@ -318,8 +321,7 @@ class AddressableEntity(AddressableEntityABC, RequestABC):
             fcm_tokens=request_data.get('fcm_tokens', None)
             if ((phones is None) or isinstance(phones, list)) and   \
             ((emails is None) or isinstance(emails, list)) and      \
-            ((fcm_tokens is None) or isinstance(fcm_tokens, list)) :
-                #(e_type in list(zip(*AddrEntity.ENTITY_TYPE_CHOICES))[0]):
+            ((fcm_tokens is None) or isinstance(fcm_tokens, list)):
                 return cls(
                     uuid.UUID(eid), e_type,
                     phones, emails, fcm_tokens), Error.NO_ERROR
@@ -333,14 +335,14 @@ class AddressableEntity(AddressableEntityABC, RequestABC):
     def get_entity_id(self)->uuid.UUID:
         return self._eid
 
-    def get_entity_type(self)->int:
+    def get_entity_type(self)->AddrEntity.AddrEntityType:
         return self._e_type
 
-    def get_phones(self)->List:
+    def get_phones(self)->List[str]:
         return self._phones
 
-    def get_emails(self)->List:
+    def get_emails(self)->List[str]:
         return self._emails
 
-    def get_fcm_tokens(self)->List:
+    def get_fcm_tokens(self)->List[str]:
         return self._fcm_tokens

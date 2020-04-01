@@ -5,7 +5,7 @@ app_name = 'notification'
 
 urlpatterns = [
     re_path(r'^sms/send/$', views.enqueue_sms, name='sms-send'),                                #Called to Send Sms
-    re_path(r'^sms/send/bulk/$', views.enqueue_sms, name='sms-send'),                           #Called to Send Sms
+    re_path(r'^sms/send/bulk/$', views.enqueue_sms, name='sms-send-bulk'),                           #Called to Send Sms
     re_path(r'^email/send/$', views.enqueue_email, name='email-send'),                          #Called to Send Email
     re_path(r'^push/send/$', views.enqueue_push, name='push-send'),                             #Called to Push Notification
     re_path(r'^entity/', views.create_or_update_entity, name='create_or_update_entity'),        #Called to Create or update entity

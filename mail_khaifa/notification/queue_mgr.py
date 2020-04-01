@@ -7,9 +7,11 @@ from .interfaces.notif_state_writer import NotificationStateQueueWriterABC
 from common_utils.errors import Error
 
 class QueueWriter(NotificationQueueWriterABC, NotificationStateQueueWriterABC):
+
     class QueuedEntityType(enum.IntEnum):
-        DATA:1
-        STATE:2
+        DATA=1
+        STATE=2
+
     '''
        1. Notification Data Queue as priority
        2. Writes to Callback Queue with appropriate delay
@@ -51,7 +53,7 @@ class QueueWriter(NotificationQueueWriterABC, NotificationStateQueueWriterABC):
         '''
          Write to CP Queue
         '''
-        if data.get_max_timestamp() < int(time.time()) :
+        if data.get_max_timestamp() and (data.get_max_timestamp() < int(time.time())):
             #we need to check, that current Timestamp is not past this.
             return Error.CONSTRAINTS_NOT_POSSIBLE
 
@@ -61,7 +63,7 @@ class QueueWriter(NotificationQueueWriterABC, NotificationStateQueueWriterABC):
         }
 
         #if we are pushing to external Queue, we need to add our CB and other params as well.
-        pass
+        return Error.NO_ERROR
 
     @classmethod
     def enqueue_notification_state_cb(cls, data:QueuableNotificationStateABC)->Error.ErrorInfo:
@@ -69,6 +71,7 @@ class QueueWriter(NotificationQueueWriterABC, NotificationStateQueueWriterABC):
             'q_e_type':cls.QueuedEntityType.STATE,
             'payload':data.to_dict()
         }
+        return Error.NO_ERROR
 
     @classmethod
     def get_payload_and_type(cls, data:typing.Dict)->typing.Dict:

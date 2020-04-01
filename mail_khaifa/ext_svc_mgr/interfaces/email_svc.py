@@ -1,5 +1,6 @@
-import abc
+import abc, typing
 from notification.api.serializer import QueuableEmailNotificationData
+from ..named_tuples import StateTransition, ExtClientResult
 
 class EmailServiceWrapperABC(abc.ABC):
     '''
@@ -7,10 +8,10 @@ class EmailServiceWrapperABC(abc.ABC):
     '''
     @classmethod
     @abc.abstractmethod
-    def send(cls, data:QueuableEmailNotificationData)->SentResult:
+    def send(cls, data:QueuableEmailNotificationData)->ExtClientResult:
         ...
 
     @classmethod
     @abc.abstractmethod
-    def handle_callback(cls, request_data):
+    def handle_callback(cls, request_data:typing.Dict)->StateTransition:
         ...

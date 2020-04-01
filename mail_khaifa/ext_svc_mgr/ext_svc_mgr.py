@@ -1,32 +1,21 @@
-import random, collections
+import random, collections, typing
 from notification.models import Notification
 from notification.interfaces.notification_data import NotificationDataABC
 from .interfaces.sms_svc import SmsServiceWrapperABC
-from .interfaces.sent_result import SentResultABC
-
-class MSG91Wrapper(SmsServiceWrapperABC):
-    '''
-    Send SMS using MSG91
-    '''
-    @classmethod
-    def send(cls, data):
-        raise NotImplementedError()
-    @classmethod
-    def handle_callback(cls, request_data):
-        raise NotImplementedError()
+from .named_tuples import StateTransition, ExtClientResult
 
 class ExternalServiceManager(object):
     '''
     Class that manages all external service wrappers to send sms, Email, push notifications
     '''
-    StateTransition=collections.namedtuple('StateTransition', ('external_id', 'updated_state'))
-    SMS_SENDERS=[MSG91Wrapper]
+    
+    SMS_SENDERS=[]
 
     @classmethod
-    def send(cls, data:NotificationDataABC)->SentResultABC:
+    def send(cls, data:NotificationDataABC)->ExtClientResult:
         if data.get_notification_type()==Notification.TYPE_SMS:
             return SMS_SENDERS[random.randint(0, len(SMS_SENDERS))].send(data)
 
     @classmethod
-    def handle_callback(cls, request_data, client_identifier)->StateTransition:
+    def handle_callback(cls, request_data:typing.Dict, client_identifier:str)->StateTransition:
         raise NotImplementedError()

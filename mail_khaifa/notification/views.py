@@ -38,7 +38,7 @@ def enqueue_sms(request):
         if error!=Error.NO_ERROR:
             return Response({'err':error}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({'nid':queue_data.get_notifiaction_id()}, status=status.HTTP_200_OK)
+        return Response({'nid':str(queue_data.get_notifiaction_id())}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes((AllowAny,))
@@ -130,9 +130,9 @@ def handle_notification_data_from_queue(queue_data_payload):
     #Update DB with state
     updated_state=Notification.NotificationState.STATE_FAILED
     external_id=None
-    if result.is_success():
+    if result.is_success:
         updated_state=Notification.NotificationState.STATE_SENT
-        external_id=result.get_external_id()
+        external_id=result.external_id
 
     #Update DB
     notification=Notification.objects.get(nid=queue_data.get_notifiaction_id())
