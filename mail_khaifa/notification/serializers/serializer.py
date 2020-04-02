@@ -63,14 +63,14 @@ class QueuableNotificationData(QueuableNotificationDataABC):
         While from_request method performs checks, this assumes data is clean
         '''
         return cls(
-            dict_data.get('nid'),
-            dict_data.get('n_type'),
-            dict_data.get('e_pk'),
-            None, None,
-            dict_data.get('priority'),
-            dict_data.get('cb_url'),
-            dict_data.get('cb_states'),
-            dict_data.get('max_ts'))
+                dict_data.get('nid'),
+                dict_data.get('n_type'),
+                dict_data.get('e_pk'),
+                None, None,
+                dict_data.get('priority'),
+                dict_data.get('cb_url'),
+                dict_data.get('cb_states'),
+                dict_data.get('max_ts'))
 
     def get_addr_entity(self)->AddrEntity:
         return self._addr_entity
@@ -92,6 +92,9 @@ class QueuableNotificationData(QueuableNotificationDataABC):
 
     def get_max_timestamp(self)->int:
         return self._max_ts
+
+    def get_payload(self):
+        return {}
 
 
 class QueuableSmsNotificationData(QueuableNotificationData, RequestABC):
@@ -124,13 +127,9 @@ class QueuableSmsNotificationData(QueuableNotificationData, RequestABC):
         self._to_phones=self.get_addr_entity().get_phones()
         self._template_name=template_name
 
-    def to_dict(self)->Dict:
-        dict_data=super().to_dict()
-        dict_data["payload"]=self.get_payload()
-        return dict_data
-
     @classmethod
     def from_dict(cls, dict_data:Dict):
+        #TBD: Deepcopy and work on that instead of popping this dict
         payload=dict_data.pop('payload')
         if 'to_phones' in payload: #this is added when creating dict.
             payload.pop('to_phones')
@@ -146,6 +145,11 @@ class QueuableSmsNotificationData(QueuableNotificationData, RequestABC):
             'sms_text':self._sms_text,
             'template_name':self._template_name
         }
+
+    def to_dict(self)->Dict:
+        dict_data=super().to_dict()
+        dict_data["payload"]=self.get_payload()
+        return dict_data
 
     @classmethod
     def from_request(cls, request_data)->(QueuableNotificationDataABC, Error.ErrorInfo):
