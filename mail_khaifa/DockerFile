@@ -1,5 +1,8 @@
 FROM python:3.6.8-slim
 
+#required for celery[sql]
+RUN apt-get install libssl-dev libcurl4-openssl-dev
+
 ENV PYTHONUNBUFFERED 1
 
 WORKDIR /mail_khaifa/web
