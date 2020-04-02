@@ -145,6 +145,51 @@ USE_L10N = True
 
 USE_TZ = True
 
+###############################################################################
+# Celery settings
+#https://docs.celeryproject.org/en/latest/getting-started/brokers/sqs.html
+from kombu.utils.url import safequote
+from kombu import Queue, Exchange
+
+CELERY_BROKER_URL = "sqs://{aws_access_key}:{aws_secret_key}@".format(
+    aws_access_key=safequote(config('AWS_ACCESS_KEY')),
+    aws_secret_key=safequote(config('AWS_SECRET_KEY')),
+)
+
+HIGH_PRIORITY_QUEUE='HIGH_PRIORITY'
+MEDIUM_PRIORITY_QUEUE='MEDIUM_PRIORITY'
+LOW_PRIORITY_QUEUE='LOW_PRIORITY'
+
+CELERY_QUEUES = (
+    Queue(HIGH_PRIORITY_QUEUE, Exchange(HIGH_PRIORITY_QUEUE), routing_key=HIGH_PRIORITY_QUEUE),
+    Queue(MEDIUM_PRIORITY_QUEUE, Exchange(MEDIUM_PRIORITY_QUEUE), routing_key=MEDIUM_PRIORITY_QUEUE),
+    Queue(LOW_PRIORITY_QUEUE, Exchange(LOW_PRIORITY_QUEUE), routing_key=LOW_PRIORITY_QUEUE),
+)
+
+CELERY_DEFAULT_QUEUE = 'LOW_PRIORITY'
+CELERY_DEFAULT_EXCHANGE = 'LOW_PRIORITY'
+CELERY_DEFAULT_ROUTING_KEY = 'LOW_PRIORITY'
+
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    'region': config('AWS_REGION'),
+    'visibility':3*3600,#3 hour
+    'polling_interval': 3, #3 second
+    'wait_time_seconds': 20, #SQS Long poll wait time
+    'queue_name_prefix': config('AWS_QUEUE_PREFIX')
+    }
+
+
+#: Only add pickle to this list if your broker is secured
+#: from unwanted access (see userguide/security.html)
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_ALWAYS_EAGER=False
+CELERY_IGNORE_RESULT=True
+CELERY_TIMEZONE = TIME_ZONE
+
+CELERYD_TASK_SOFT_TIME_LIMIT = 60
+
+###############################################################################
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/

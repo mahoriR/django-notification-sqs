@@ -22,6 +22,8 @@ from .queue_mgr import QueueWriter
 
 from .serializers.model_serializers import AddrEntitySerializer
 
+from .ext_svc_interfacer import ExternalServiceManager
+
 @api_view(['POST'])
 @permission_classes((AllowAny,))
 def enqueue_sms(request):
@@ -112,59 +114,11 @@ def create_or_update_entity(request):
             error=Error.INVALID_PARAMETERS
         return Response({'err':error}, status=status.HTTP_400_BAD_REQUEST)
 
-def handle_notification_data_from_queue(queue_data_payload):
-    queue_data, cp_error = QueuableNotificationData.from_dict(queue_data_payload)
-
-    if queue_data.get_notifiaction_type()==Notification.NotificationType.TYPE_SMS:
-        NotifClass=QueuableSmsNotificationData
-    elif queue_data.get_notifiaction_type()==Notification.NotificationType.TYPE_EMAIL:
-        raise NotImplementedError()
-    elif queue_data.get_notifiaction_type()==Notification.NotificationType.TYPE_PUSH:
-        raise NotImplementedError()
-    else:
-        raise RuntimeError('Unknown Notification Type: '+str(queue_data.get_notifiaction_type()))
-
-    queue_data, cp_error = NotifClass.from_dict(queue_data_payload)
-    result=ExternalServiceManager.send(queue_data)
-
-    #Update DB with state
-    updated_state=Notification.NotificationState.STATE_FAILED
-    external_id=None
-    if result.is_success:
-        updated_state=Notification.NotificationState.STATE_SENT
-        external_id=result.external_id
-
-    #Update DB
-    notification=Notification.objects.get(nid=queue_data.get_notifiaction_id())
-    notification=notification.update_state(updated_state, external_id)
-
-    if queue_data.notification_cb_url() and (updated_state in queue_data.notification_cb_states()):
-        notification_state_cb=QueuableNotificationState(
-            queue_data.get_notifiaction_id(), updated_state, queue_data.notification_cb_url(), 0)
-        #TBD : Check Errror
-        QueueWriter.enqueue_notification_state_cb(notification_state_cb)
-
-def handle_notification_state_from_queue(queue_state_payload):
-    #Call external Service. If call fails, reque.
-    notification_state_cb=QueuableNotificationState.from_dict(queue_state_payload)
-    r=requests.post(notification_state_cb.get_notification_cb_url(), data={'state':notification_state_cb.get_notification_state()})
-    if (r.status_code != requests.codes.ok) and (notification_state_cb.get_retry_count() < notification_state_cb.get_max_retry_count()):
-        #requeue if retry count not already exceed 3?
-        notification_state_cb.set_retry_count(notification_state_cb.get_retry_count()+1)
-        QueueWriter.enqueue_notification_state_cb(notification_state_cb)
-
 @api_view(['POST'])
 @permission_classes((AllowAny,))
 def handle_enqued_notification(request):
     if request.method == 'POST':
-        queued_payload, q_entity_type=QueueWriter.get_payload_and_type(request.data)
-        if q_entity_type==QueueWriter.QueuedEntityType.DATA:
-            handle_notification_data_from_queue(queued_payload)
-        elif q_entity_type==QueueWriter.QueuedEntityType.STATE:
-            handle_notification_state_from_queue(queued_payload)
-        else:
-            raise RuntimeError('Invalid Queued Entity Type '+q_entity_type)
-
+        ExternalServiceManager.get_instance(QueueWriter).handle_enqued_notification_payload(request.data)
         return Response(status=status.HTTP_200_OK)
 
 @api_view(['POST'])
